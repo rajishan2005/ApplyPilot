@@ -14,6 +14,13 @@ ApplyPilot brings the process into one place:
 4. Use ScamShield to review source information and potential warning signs.
 5. Track application progress.
 
+## Current demo technology
+
+- Python server (`server.py`)
+- Browser-based frontend
+- Tavily for web discovery
+- Google Gemini and OpenAI for AI-assisted features
+
 ## Design principles
 
 - **Clarity:** show important opportunity details in a consistent format.
@@ -23,4 +30,4 @@ ApplyPilot brings the process into one place:
 
 ## Important note
 
-This document describes the intended product experience. It does not claim that every integration or feature is currently implemented in the repository.
+This document describes the current demo at a high level. It does not claim integrations that are not implemented. ElevenLabs and AWS are not currently used by the project.
