@@ -35,15 +35,12 @@ The project is designed around a lightweight web application and AI-assisted ser
 
 | Layer | Technology |
 | --- | --- |
-| Frontend | React (project design) |
-| Backend | Python / FastAPI (project design) |
+| Frontend | Browser-based web interface |
+| Backend | Python (`server.py`) |
 | AI assistance | Google Gemini and OpenAI |
 | Web discovery | Tavily |
-| Voice experience | ElevenLabs |
-| Optional file backup | AWS S3 |
-| Data storage | SQLite |
 
-*Integrations and components may vary by demo build. Optional services such as AWS S3 require separate configuration.*
+*The current demo uses a Python server and the configured Gemini, OpenAI, and Tavily services. ElevenLabs and AWS are not currently integrated.*
 
 ## 🛡️ Safety and transparency
 
@@ -51,11 +48,11 @@ ApplyPilot is intended to help students make more informed decisions, not to gua
 
 ## 🚧 Project status
 
-ApplyPilot is being prepared as a hackathon demo. This repository currently contains the deployment scaffold and project documentation; the application source files and a live deployment still need to be added.
+ApplyPilot is being prepared as a hackathon demo. This repository currently contains the deployment scaffold and project documentation; the repository still needs the actual application source files before a live deployment can be built.
 
 ## ☁️ Deployment
 
-A Render Blueprint is included in [`render.yaml`](./render.yaml). Once the application source is added, configure the required API keys as environment variables in the Render dashboard.
+A Render Blueprint is included in [`render.yaml`](./render.yaml). Once the application source is added, configure the API keys used by the current build as environment variables in the Render dashboard.
 
 **Never commit your real `.env` file, API keys, or local database.** Use [`.env.example`](./.env.example) as a reference for variable names.
 
