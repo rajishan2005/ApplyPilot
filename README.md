@@ -1,76 +1,81 @@
-# ✈️ ApplyPilot
+# ApplyPilot
 
 **Discover smarter. Verify before you apply.**
 
-ApplyPilot is a student-focused opportunity assistant designed to make finding and evaluating hackathons, internships, scholarships, and other opportunities less time-consuming.
+ApplyPilot helps students discover hackathons, internships and scholarships, compare opportunities, inspect trust signals, check eligibility and prepare application drafts.
 
-Instead of jumping between multiple websites and manually checking every listing, students can use one simple workflow to discover relevant opportunities, compare them, review potential risks, and keep track of applications.
+## Private preview features
 
----
+- Invite-code gate before the app and its APIs can be used.
+- Signed, HttpOnly, SameSite=Strict session cookies.
+- Separate owner dashboard at `/admin`, protected by its own key.
+- Privacy-preserving analytics: page views, distinct IP visitors, usage actions and quota blocks. IPs are stored as keyed hashes, not raw addresses.
+- Three costly actions per IP in a rolling 24-hour window. Search, ScamShield scan, Copilot, comparison and eligibility checks share this limit. Remaining quota is not shown; after the limit is reached, the interface displays a countdown until access returns.
+- Failed invite/admin attempts are throttled per IP.
+- Opportunity discovery, evidence-oriented ScamShield, eligibility analysis, comparison and application-draft workflow.
 
-## 🔎 The workflow
+## Local setup
 
-```text
-Discover  →  Shortlist  →  Compare  →  ScamShield  →  Apply & Track
+```bash
+python -m venv .venv
+# Windows: .venv\\Scripts\\activate
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env  # Windows PowerShell: Copy-Item .env.example .env
+python server.py
 ```
 
-| Step | What it does |
-| --- | --- |
-| **Discover** | Find opportunities from different sources and narrow them down with useful filters. |
-| **Shortlist** | Save opportunities that are relevant to your interests and goals. |
-| **Compare** | Review two opportunities side by side, including details such as eligibility, fees, deadlines, and location when available. |
-| **ScamShield** | Review the source and highlight warning signs or details that could not be verified. |
-| **Apply & Track** | Keep a record of opportunities you're applying to and follow their application status. |
+Open `http://localhost:8765`. For local HTTP testing, set `COOKIE_SECURE=false` in `.env`. Set a long random `SESSION_SECRET`, a private `INVITE_CODE`, and a different `ADMIN_DASHBOARD_KEY` before starting.
 
-## ✨ Why ApplyPilot?
+## Railway deployment
 
-- **Less searching:** bring opportunity discovery into one workflow.
-- **Better decisions:** compare important details before spending time on an application.
-- **More awareness:** look for suspicious signals and distinguish verified details from unknowns.
-- **Stay organised:** keep shortlisted opportunities and application progress together.
+See [`RAILWAY_DEPLOY.md`](./RAILWAY_DEPLOY.md). In short:
 
-## 🧩 Technology
+1. Deploy this repository on Railway.
+2. Add Tavily, Gemini and OpenAI API keys as Railway Variables.
+3. Add `INVITE_CODE`, `ADMIN_DASHBOARD_KEY`, and a random `SESSION_SECRET` and a separate stable `IP_HASH_SECRET` (each at least 32 random bytes).
+4. Set `DAILY_ACTION_LIMIT=3`, `SESSION_HOURS=24`, `COOKIE_SECURE=true`, and `TRUST_PROXY_HEADERS=true`.
+5. Attach a Railway Volume mounted at `/data` and set `APPLYPILOT_DB_PATH=/data/applypilot.db`.
+6. Generate a public domain. Share the URL and invite code only with selected testers.
 
-The project is designed around a lightweight web application and AI-assisted services.
+### Environment variables
 
-| Layer | Technology |
-| --- | --- |
-| Frontend | Browser-based web interface |
-| Backend | Python (`server.py`) |
-| AI assistance | Google Gemini and OpenAI |
-| Web discovery | Tavily |
+| Variable | Purpose |
+|---|---|
+| `TAVILY_API_KEY` | Live web discovery and extraction |
+| `GEMINI_API_KEY` | Opportunity extraction and AI analysis |
+| `OPENAI_API_KEY` | Eligibility, comparison and Copilot |
+| `INVITE_CODE` | Shared code required to enter the app |
+| `ADMIN_DASHBOARD_KEY` | Separate owner-only dashboard password |
+| `SESSION_SECRET` | Signs invite and admin session cookies; keep private |
+| `IP_HASH_SECRET` | Stable secret used to hash IPs for quota and analytics |
+| `DAILY_ACTION_LIMIT` | Shared per-IP rolling daily limit; default 3 |
+| `SESSION_HOURS` | Session cookie lifetime; default 24 hours |
+| `APPLYPILOT_DB_PATH` | SQLite database path; use `/data/applypilot.db` on Railway |
+| `COOKIE_SECURE` | Set `true` on HTTPS deployments; `false` only for local HTTP |
+| `TRUST_PROXY_HEADERS` | Trust Railway's forwarded client IP header |
 
-*The current demo uses a Python server and the configured Gemini, OpenAI, and Tavily services. ElevenLabs and AWS are not currently integrated.*
+## Owner dashboard
 
-## 🛡️ Safety and transparency
+Open `https://YOUR-RAILWAY-DOMAIN/admin` and enter `ADMIN_DASHBOARD_KEY`. It shows 24-hour page views, unique IP visitors, costly actions, quota blocks, a seven-day activity chart and recent events. The dashboard is not linked from the public app.
 
-ApplyPilot is intended to help students make more informed decisions, not to guarantee that an opportunity is legitimate. A warning or a missing detail should be treated as a prompt to verify information directly with the organiser. Users remain in control of their applications.
+## Usage-limit behavior
 
-## 🚧 Project status
+The quota is **three combined AI/search actions per IP per rolling 24 hours**, not three searches plus three scans. A search, ScamShield scan, Copilot question, comparison or eligibility check consumes one action. Failed provider attempts also consume an action because they may still incur provider costs. After three actions, the server returns a reset timestamp and the frontend displays a countdown. The visitor is not told how many actions remain.
 
-ApplyPilot is being prepared as a hackathon demo. This repository currently contains the deployment scaffold and project documentation; the repository still needs the actual application source files before a live deployment can be built.
+## Security and privacy notes
 
-## ☁️ Deployment
+- Never commit `.env`, API keys, invite codes, admin keys, session secrets or the SQLite database.
+- The invite code is shared among invitees, not a unique per-person account. Anyone who receives it can share it. Rotate it if it leaks.
+- Per-IP limits are not per-person identity: users on the same campus Wi-Fi share a quota, and VPN/mobile-network changes can change an IP.
+- Analytics use keyed IP hashes, not raw IP addresses. Counts are approximate unique IPs, not guaranteed unique humans.
+- This prototype's student profile, shortlist and application records are still stored in a shared workspace. Tell testers to use demo information only; do not enter sensitive personal data.
+- ScamShield provides risk indicators and evidence leads, not a guarantee or legal fraud determination.
+- For a larger public launch, add individual accounts, per-user data isolation, stronger edge rate limiting and a managed database.
 
-A Render Blueprint is included in [`render.yaml`](./render.yaml). Once the application source is added, configure the API keys used by the current build as environment variables in the Render dashboard.
+## Tests
 
-**Never commit your real `.env` file, API keys, or local database.** Use [`.env.example`](./.env.example) as a reference for variable names.
-
-## 🗺️ Next steps
-
-- [ ] Add the application source code
-- [ ] Verify the local setup and API integrations
-- [ ] Deploy the demo on Render
-- [ ] Add screenshots and a short demo video
-- [ ] Document setup instructions for contributors
-
-## 🤝 Contributions
-
-Ideas, bug reports, and suggestions are welcome. If you find an issue, please open a GitHub Issue with steps to reproduce it.
-
----
-
-<p align="center">
-  <strong>ApplyPilot</strong><br/>
-  <em>Find opportunities. Make informed choices. Keep moving forward.</em>
-</p>
+```bash
+python -m unittest discover -s tests -v
+node --check static/app.js
+```

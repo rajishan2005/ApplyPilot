@@ -9,6 +9,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
+      - key: PORT
+        value: 10000
       - key: TAVILY_API_KEY
         sync: false
       - key: GEMINI_API_KEY
